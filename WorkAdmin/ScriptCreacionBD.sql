@@ -1,5 +1,4 @@
 -- Creación de la base de datos
--- Creación de la base de datos
 IF DB_ID('Workadmin') IS NULL
 BEGIN
     CREATE DATABASE Workadmin;
@@ -682,8 +681,6 @@ JOIN Producto pr ON ctp.id_producto = pr.id
 JOIN Proveedor p ON c.id_proveedor = p.id;
 GO
 
-----------------------------------------------------------------------------------------------------
-
 -- 6. Vista de proveedores con sus productos más comprados
 CREATE OR ALTER VIEW Vista_Proveedores_Productos_Mas_Comprados AS
 SELECT p.id AS id_proveedor, p.nombre AS proveedor, pr.id AS id_producto, pr.nombre AS producto, SUM(ctp.cantidad) AS total_comprado
@@ -715,9 +712,149 @@ FROM Producto p
 JOIN Empleado_utiliza_Producto eup ON p.id = eup.id_producto
 GROUP BY p.id, p.nombre;
 GO
-
 -- 10. Vista de historial de compras y facturas
 CREATE OR ALTER VIEW Vista_Historial_Compras_Facturas AS
 SELECT c.id AS id_compra, c.fecha_compra, f.id AS id_factura, f.folio, f.metodo_pago, f.subtotal, f.total, f.estado_pago, f.fecha_emision
 FROM Compra c
 JOIN Factura f ON c.id_factura = f.id;
+GO
+
+CREATE TRIGGER trg_ActualizarInventario_CompraProducto
+ON Compra_tiene_Producto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Inventario
+    EXEC sp_refreshview 'Inventario';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarInventario_EmpleadoUtilizaProducto
+ON Empleado_utiliza_Producto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Inventario
+    EXEC sp_refreshview 'Inventario';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaProductosCantidadComprada
+ON Compra_tiene_Producto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Productos_Cantidad_Comprada
+    EXEC sp_refreshview 'Vista_Productos_Cantidad_Comprada';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaEmpleadosUsoProductos
+ON Empleado_utiliza_Producto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Empleados_Uso_Productos
+    EXEC sp_refreshview 'Vista_Empleados_Uso_Productos';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaFacturasPendientes
+ON Factura
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Facturas_Pendientes
+    EXEC sp_refreshview 'Vista_Facturas_Pendientes';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaComprasDetalles
+ON Compra
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Compras_Detalles
+    EXEC sp_refreshview 'Vista_Compras_Detalles';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaComprasDetalles_CompraProducto
+ON Compra_tiene_Producto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Compras_Detalles
+    EXEC sp_refreshview 'Vista_Compras_Detalles';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaProveedoresProductosMasComprados
+ON Compra
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Proveedores_Productos_Mas_Comprados
+    EXEC sp_refreshview 'Vista_Proveedores_Productos_Mas_Comprados';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaProveedoresProductosMasComprados_CompraProducto
+ON Compra_tiene_Producto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Proveedores_Productos_Mas_Comprados
+    EXEC sp_refreshview 'Vista_Proveedores_Productos_Mas_Comprados';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaEmpleadosContacto
+ON Empleado
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Empleados_Contacto
+    EXEC sp_refreshview 'Vista_Empleados_Contacto';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaComprasPorEmpleado
+ON Compra
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Compras_Por_Empleado
+    EXEC sp_refreshview 'Vista_Compras_Por_Empleado';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaProductosUtilizados
+ON Empleado_utiliza_Producto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Productos_Utilizados
+    EXEC sp_refreshview 'Vista_Productos_Utilizados';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaHistorialComprasFacturas
+ON Compra
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Historial_Compras_Facturas
+    EXEC sp_refreshview 'Vista_Historial_Compras_Facturas';
+END;
+GO
+
+CREATE TRIGGER trg_ActualizarVistaHistorialComprasFacturas_Factura
+ON Factura
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    -- Actualizar la vista Vista_Historial_Compras_Facturas
+    EXEC sp_refreshview 'Vista_Historial_Compras_Facturas';
+END;
+GO

@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using ComboBox = System.Windows.Forms.ComboBox;
 
 namespace WorkAdmin
@@ -36,16 +37,20 @@ namespace WorkAdmin
         }
         private void btnInsert_Click(object sender, EventArgs e)
         {
-            InsertionForm insertionForm = new InsertionForm();
+            InsertionForm insertionForm = new InsertionForm(selectedTable);
             insertionForm.ShowDialog();
         }
         private void comboBoxTable_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            LoadDataAccordingToComboBox((ComboBox)sender, dataGridViewSelect, selectedTable);
+            var combobox = (ComboBox)sender;
+            selectedTable = (DataHandler.Tables)combobox.SelectedItem;
+            LoadData(dataGridViewSelect, selectedTable);
         }
         private void comboBoxView_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            LoadDataAccordingToComboBox((ComboBox)sender, dataGridViewSelect, selectedView);
+            var combobox = (ComboBox)sender;
+            selectedView = (DataHandler.Views)combobox.SelectedItem;
+            LoadData(dataGridViewSelect, selectedView);
         }
         private void ShowResultOf(string connectionState)
         {
@@ -59,11 +64,25 @@ namespace WorkAdmin
                 comboBox.Items.Add(value);
             }
         }
-        private void LoadDataAccordingToComboBox(ComboBox comboBox, DataGridView dataGridView, Enum enumType)
+        private void LoadData(DataGridView dataGridView, Enum enumType)
         {
-            Enum selectedEnumValue = (Enum)comboBox.SelectedItem;
-            DataTable data = DataHandler.GetDataFrom(selectedEnumValue);
+            DataTable data = DataHandler.GetDataFrom(enumType);
             dataGridView.DataSource = data;
+        }
+
+        private void MainMenu_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBoxTable_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            btnInsert.Enabled = true;
+        }
+
+        private void comboBoxView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            btnInsert.Enabled = false;
         }
     }
 }

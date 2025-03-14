@@ -73,8 +73,13 @@ namespace WorkAdmin
             {
                 message = "Ocurrió un error al conectarse con la base de datos \r\n" + ex.Message;
             }
-            if (connection.State == ConnectionState.Open)
-                connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return message;
         }
         public static string DropDatabase()
@@ -95,7 +100,13 @@ namespace WorkAdmin
             {
                 message = "Ocurrio un error al conectarse con la base de datos \r\n" + ex.Message;
             }
-            if (connection.State == ConnectionState.Open) connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return message;
         }
         public static DataTable GetDataFrom(Enum table)
@@ -118,7 +129,13 @@ namespace WorkAdmin
             {
                 message = "Ocurrió un error: " + ex.Message;
             }
-            if (connection.State == ConnectionState.Open) connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return dataTable;
         }
         public static string InsertProduct(string name, string description = null, string metricUnit = null, string specification = null, string category = "REFACCION")
@@ -128,7 +145,10 @@ namespace WorkAdmin
                 connection = new SqlConnection(dataBaseConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use { databaseName }\r\nInsertarProducto", connection);
+                command = new SqlCommand($"use {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                command = new SqlCommand("InsertarProducto", connection);
                 command.CommandType = CommandType.StoredProcedure;
 
                 command.Parameters.AddWithValue("@nombre", name);
@@ -144,7 +164,13 @@ namespace WorkAdmin
             {
                 message = "Ocurrió un error al insertar el producto: " + ex.Message;
             }
-            if (connection.State == ConnectionState.Open) connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return message;
         }
         public static string InsertSupplier(string name, string businessName = null, string address = null, string phoneNumber = "6120000000", string email = null)
@@ -154,7 +180,10 @@ namespace WorkAdmin
                 connection = new SqlConnection(dataBaseConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use {databaseName}\r\nInsertarProveedor", connection);
+                command = new SqlCommand($"use {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                command = new SqlCommand("InsertarProveedor", connection);
                 command.CommandType = CommandType.StoredProcedure;
 
                 command.Parameters.AddWithValue("@nombre", name);
@@ -170,7 +199,13 @@ namespace WorkAdmin
             {
                 message = "Ocurrió un error al insertar el proveedor: " + ex.Message;
             }
-            if (connection.State == ConnectionState.Open) connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return message;
         }
         public static string InsertEmployee(string name, decimal salary, DateTime birthDate, string position = "EMPLEADO GENERAL", string phoneNumber = "6120000000", string email = null, string rfc = null)
@@ -180,7 +215,10 @@ namespace WorkAdmin
                 connection = new SqlConnection(dataBaseConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use {databaseName}\r\nInsertarEmpleado", connection);
+                command = new SqlCommand($"use {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                command = new SqlCommand("InsertarEmpleado", connection);
                 command.CommandType = CommandType.StoredProcedure;
 
                 command.Parameters.AddWithValue("@nombre", name);
@@ -198,7 +236,13 @@ namespace WorkAdmin
             {
                 message = "Ocurrió un error al insertar el empleado: " + ex.Message;
             }
-            if (connection.State == ConnectionState.Open) connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return message;
         }
         public static string InsertPurchase(DateTime purchaseDate, int idInvoice, int idEmployee, int idSupplier, DateTime? receptionDate = null)
@@ -208,7 +252,10 @@ namespace WorkAdmin
                 connection = new SqlConnection(masterConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use {databaseName}\r\nInsertarCompra", connection);
+                command = new SqlCommand($"use {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                command = new SqlCommand("InsertarCompra", connection);
                 command.CommandType = CommandType.StoredProcedure;
 
                 command.Parameters.AddWithValue("@fecha_compra", purchaseDate);
@@ -224,7 +271,13 @@ namespace WorkAdmin
             {
                 message = "Ocurrió un error al registrar la compra: " + ex.Message;
             }
-            if (connection.State == ConnectionState.Open) connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return message;
         }
         public static string InsertProductUsage(DateTime date, int idEmployee, int idProduct, int quantity = 1, string reason = "Sin motivo")
@@ -234,7 +287,10 @@ namespace WorkAdmin
                 connection = new SqlConnection(masterConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use {databaseName}\r\nInsertarEmpleadoUtilizaProducto", connection);
+                command = new SqlCommand($"use {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                command = new SqlCommand("InsertarEmpleadoUtilizaProducto", connection);
                 command.CommandType = CommandType.StoredProcedure;
 
                 command.Parameters.AddWithValue("@fecha", date);
@@ -250,7 +306,86 @@ namespace WorkAdmin
             {
                 message = "Ocurrió un error al registrar la salida de almacén: " + ex.Message;
             }
-            if (connection.State == ConnectionState.Open) connection.Close();
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            return message;
+        }
+        public static string InsertInvoice(string folio, decimal subtotal, decimal total, DateTime emissionDate, string paymentMethod = null, string paymentStatus = "POR PAGAR")
+        {
+            try
+            {
+                connection = new SqlConnection(dataBaseConnection);
+                connection.Open();
+
+                command = new SqlCommand($"USE {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                command = new SqlCommand("InsertarFactura", connection);
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue("@folio", folio);
+                command.Parameters.AddWithValue("@metodo_pago", paymentMethod ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@subtotal", subtotal);
+                command.Parameters.AddWithValue("@total", total);
+                command.Parameters.AddWithValue("@estado_pago", paymentStatus);
+                command.Parameters.AddWithValue("@fecha_emision", emissionDate);
+
+                command.ExecuteNonQuery();
+                message = "Factura insertada correctamente.";
+            }
+            catch (Exception ex)
+            {
+                message = "Ocurrió un error al insertar la factura: " + ex.Message;
+            }
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            return message;
+        }
+        public static string InsertPurchaseProduct(int quantity, decimal unitPrice, int purchaseId, int productId, string status = "Nuevo", string observations = null)
+        {
+            try
+            {
+                connection = new SqlConnection(dataBaseConnection);
+                connection.Open();
+
+                command = new SqlCommand($"USE {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                command = new SqlCommand("InsertarCompraProducto", connection);
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue("@cantidad", quantity);
+                command.Parameters.AddWithValue("@precio_unitario", unitPrice);
+                command.Parameters.AddWithValue("@estado", status);
+                command.Parameters.AddWithValue("@observaciones", observations ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@id_compra", purchaseId);
+                command.Parameters.AddWithValue("@id_producto", productId);
+
+                command.ExecuteNonQuery();
+                message = "Producto asociado a la compra correctamente.";
+            }
+            catch (Exception ex)
+            {
+                message = "Ocurrió un error al asociar el producto a la compra: " + ex.Message;
+            }
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+
             return message;
         }
     }
