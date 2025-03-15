@@ -1,6 +1,6 @@
 ﻿namespace WorkAdmin
 {
-    partial class InsertionForm
+    partial class UpdateForm
     {
         /// <summary>
         /// Required designer variable.
@@ -30,19 +30,13 @@
         {
             this.SuspendLayout();
             // 
-            // InsertionForm
+            // UpdateForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(348, 344);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Margin = new System.Windows.Forms.Padding(2);
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "InsertionForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Insertar";
-            this.Load += new System.EventHandler(this.InsertionForm_Load);
+            this.Name = "UpdateForm";
+            this.Text = "Actualizar";
             this.ResumeLayout(false);
 
         }

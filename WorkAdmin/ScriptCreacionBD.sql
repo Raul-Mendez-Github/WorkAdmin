@@ -8,116 +8,6 @@ GO
 USE Workadmin;
 GO
 
--- Creación de las tablas
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Proveedor' AND xtype='U')
-BEGIN
-    CREATE TABLE Proveedor (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        nombre VARCHAR(100) UNIQUE NOT NULL,
-        razon_social VARCHAR(150) UNIQUE,
-        domicilio VARCHAR(200),
-        telefono VARCHAR(10) DEFAULT '6120000000' CHECK (LEN(telefono) = 10),
-        correo VARCHAR(100) UNIQUE
-    );
-END
-GO
-
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Producto' AND xtype='U')
-BEGIN
-    CREATE TABLE Producto (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        nombre VARCHAR(100) UNIQUE NOT NULL,
-        descripcion VARCHAR(200),
-        unidad_medida VARCHAR(50),
-        especificacion VARCHAR(100),
-        categoria VARCHAR(50) DEFAULT 'REFACCION' CHECK (LEN(categoria) > 4)
-    );
-END
-GO
-
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Empleado' AND xtype='U')
-BEGIN
-    CREATE TABLE Empleado (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        nombre VARCHAR(100),
-        puesto VARCHAR(50) DEFAULT 'EMPLEADO GENERAL',
-        sueldo DECIMAL(10, 2),
-        telefono VARCHAR(10) DEFAULT '6120000000',
-        correo VARCHAR(100) UNIQUE,
-        rfc VARCHAR(13) UNIQUE,
-        fecha_nacimiento DATE CHECK (fecha_nacimiento > '1900-01-01' AND (YEAR(GETDATE()) - YEAR(fecha_nacimiento)) >= 18)
-    );
-END
-GO
-
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Compra' AND xtype='U')
-BEGIN
-    CREATE TABLE Compra (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        fecha_compra DATE CHECK (fecha_compra <= GETDATE()) NOT NULL,
-        fecha_recepcion DATE,
-        id_factura INT UNIQUE NOT NULL,
-        id_empleado INT DEFAULT 1,
-        id_proveedor INT NOT NULL,
-        FOREIGN KEY (id_empleado) REFERENCES Empleado(id),
-        FOREIGN KEY (id_proveedor) REFERENCES Proveedor(id)
-    );
-END
-GO
-
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Factura' AND xtype='U')
-BEGIN
-    CREATE TABLE Factura (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        folio VARCHAR(50) UNIQUE NOT NULL,
-        metodo_pago VARCHAR(50),
-        subtotal DECIMAL(10, 2),
-        total DECIMAL(10, 2),
-        estado_pago VARCHAR(50) DEFAULT 'POR PAGAR',
-        fecha_emision DATE CHECK(fecha_emision <= GETDATE())
-    );
-END
-GO
-
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Compra_tiene_Producto' AND xtype='U')
-BEGIN
-    CREATE TABLE Compra_tiene_Producto (
-        cantidad INT CHECK (cantidad > 0),
-        precio_unitario DECIMAL(10, 2),
-        estado VARCHAR(50) DEFAULT 'Nuevo',
-        observaciones VARCHAR(200),
-        id_compra INT NOT NULL,
-        id_producto INT NOT NULL,
-        FOREIGN KEY (id_compra) REFERENCES Compra(id),
-        FOREIGN KEY (id_producto) REFERENCES Producto(id)
-    );
-END
-GO
-
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Empleado_utiliza_Producto' AND xtype='U')
-BEGIN
-    CREATE TABLE Empleado_utiliza_Producto (
-        fecha DATE CHECK (fecha <= GETDATE()),
-        cantidad INT DEFAULT 1 CHECK (cantidad > 0),
-        motivo VARCHAR(200),
-        id_empleado INT NOT NULL,
-        id_producto INT NOT NULL,
-        FOREIGN KEY (id_empleado) REFERENCES Empleado(id),
-        FOREIGN KEY (id_producto) REFERENCES Producto(id)
-    );
-END
-GO
-
--- Creación de la base de datos
-IF DB_ID('Workadmin') IS NULL
-BEGIN
-    CREATE DATABASE Workadmin;
-END
-GO
-
-USE Workadmin;
-GO
-
 -- Creación de las tablas principales
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Proveedor' AND xtype='U')
 BEGIN
@@ -164,13 +54,13 @@ IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Compra' AND xtype='U')
 BEGIN
     CREATE TABLE Compra (
         id INT IDENTITY(1,1) PRIMARY KEY,
-        fecha_compra DATE CHECK (fecha_compra <= GETDATE()) NOT NULL,
+        fecha_compra DATE NOT NULL,
         fecha_recepcion DATE,
         id_factura INT UNIQUE NOT NULL,
         id_empleado INT DEFAULT 1,
         id_proveedor INT NOT NULL,
-        FOREIGN KEY (id_empleado) REFERENCES Empleado(id),
-        FOREIGN KEY (id_proveedor) REFERENCES Proveedor(id)
+        FOREIGN KEY (id_empleado) REFERENCES Empleado(id) ON DELETE CASCADE,
+        FOREIGN KEY (id_proveedor) REFERENCES Proveedor(id) ON DELETE CASCADE
     );
 END
 GO
@@ -198,8 +88,8 @@ BEGIN
         observaciones VARCHAR(200),
         id_compra INT NOT NULL,
         id_producto INT NOT NULL,
-        FOREIGN KEY (id_compra) REFERENCES Compra(id),
-        FOREIGN KEY (id_producto) REFERENCES Producto(id)
+        FOREIGN KEY (id_compra) REFERENCES Compra(id) ON DELETE CASCADE,
+        FOREIGN KEY (id_producto) REFERENCES Producto(id) ON DELETE CASCADE
     );
 END
 GO
@@ -212,13 +102,13 @@ BEGIN
         motivo VARCHAR(200),
         id_empleado INT NOT NULL,
         id_producto INT NOT NULL,
-        FOREIGN KEY (id_empleado) REFERENCES Empleado(id),
-        FOREIGN KEY (id_producto) REFERENCES Producto(id)
+        FOREIGN KEY (id_empleado) REFERENCES Empleado(id) ON DELETE CASCADE,
+        FOREIGN KEY (id_producto) REFERENCES Producto(id) ON DELETE CASCADE
     );
 END
 GO
 
--- Creación de tablas de respaldo
+-- Creación de tablas de respaldo (sin cambios)
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Proveedor_Backup' AND xtype='U')
 BEGIN
     CREATE TABLE Proveedor_Backup (
@@ -305,6 +195,7 @@ BEGIN
     );
 END
 GO
+
 -- Triggers para insertar en las tablas de respaldo
 CREATE TRIGGER trg_Proveedor_Insert_Backup
 ON Proveedor

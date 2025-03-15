@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static WorkAdmin.DataHandler;
 using ComboBox = System.Windows.Forms.ComboBox;
 
 namespace WorkAdmin
@@ -19,6 +20,7 @@ namespace WorkAdmin
     {
         DataHandler.Tables selectedTable;
         DataHandler.Views selectedView;
+        bool shownIsTable = false;
         public MainMenu()
         {
             InitializeComponent();
@@ -39,18 +41,27 @@ namespace WorkAdmin
         {
             InsertionForm insertionForm = new InsertionForm(selectedTable);
             insertionForm.ShowDialog();
+            Refresh();
         }
         private void comboBoxTable_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            var combobox = (ComboBox)sender;
-            selectedTable = (DataHandler.Tables)combobox.SelectedItem;
-            LoadData(dataGridViewSelect, selectedTable);
+            var comboBox = (ComboBox)sender;
+            var selectedEnumValue = (DataHandler.Tables)comboBox.SelectedItem;
+            selectedTable = selectedEnumValue;
+            LoadData(dataGridViewSelect, selectedEnumValue);
+
+            shownIsTable = true;
+            ValidateEnableModifying();
         }
         private void comboBoxView_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            var combobox = (ComboBox)sender;
-            selectedView = (DataHandler.Views)combobox.SelectedItem;
-            LoadData(dataGridViewSelect, selectedView);
+            var comboBox = (ComboBox)sender;
+            var selectedEnumValue = (DataHandler.Views)comboBox.SelectedItem;
+            selectedView = selectedEnumValue;
+            LoadData(dataGridViewSelect, selectedEnumValue);
+
+            shownIsTable = false;
+            ValidateEnableModifying();
         }
         private void ShowResultOf(string connectionState)
         {
@@ -59,30 +70,72 @@ namespace WorkAdmin
         private void LoadEnumOnComboBox(ComboBox comboBox, Enum enumType)
         {
             comboBox.Items.Clear();
-            foreach (var value in Enum.GetValues(enumType.GetType()))
-            {
-                comboBox.Items.Add(value);
-            }
+            comboBox.DataSource = null;
+            comboBox.DataSource = Enum.GetValues(enumType.GetType());
         }
         private void LoadData(DataGridView dataGridView, Enum enumType)
         {
             DataTable data = DataHandler.GetDataFrom(enumType);
             dataGridView.DataSource = data;
         }
-
-        private void MainMenu_Load(object sender, EventArgs e)
+        private void dataGridViewSelect_SelectionChanged(object sender, EventArgs e)
         {
-
+            ValidateEnableModifying();
+        }
+        private void ValidateEnableModifying()
+        {
+            if (dataGridViewSelect.SelectedRows.Count > 0 && shownIsTable)
+            {
+                btnEliminar.Enabled = true;
+                btnModificar.Enabled = true;
+                btnInsertar.Enabled = true;
+            }
+            else
+            {
+                btnEliminar.Enabled = false;
+                btnModificar.Enabled = false;
+                btnInsertar.Enabled = false;
+            }
         }
 
-        private void comboBoxTable_SelectedIndexChanged(object sender, EventArgs e)
+        private void btnEliminar_Click(object sender, EventArgs e)
         {
-            btnInsert.Enabled = true;
+            if (dataGridViewSelect.SelectedRows.Count == 0) return;
+
+            Dictionary<string, object> columnValues = new Dictionary<string, object>();
+
+            foreach (DataGridViewColumn column in dataGridViewSelect.Columns)
+            {
+                object cellValue = dataGridViewSelect.SelectedRows[0].Cells[column.Name].Value;
+
+                columnValues.Add(column.Name, cellValue);
+            }
+
+            string result = DataHandler.DeleteRegister(selectedTable.ToString(), columnValues);
+
+            MessageBox.Show(result);
+            Refresh();
         }
 
-        private void comboBoxView_SelectedIndexChanged(object sender, EventArgs e)
+        private void btnModificar_Click(object sender, EventArgs e)
         {
-            btnInsert.Enabled = false;
+            if (dataGridViewSelect.SelectedRows.Count == 0) return;
+
+            Dictionary<string, object> columnValues = new Dictionary<string, object>();
+
+            foreach (DataGridViewColumn column in dataGridViewSelect.Columns)
+            {
+                object cellValue = dataGridViewSelect.SelectedRows[0].Cells[column.Name].Value;
+                columnValues.Add(column.Name, cellValue);
+            }
+
+            UpdateForm updateForm = new UpdateForm(selectedTable, columnValues);
+            updateForm.ShowDialog();
+            Refresh();
+        }
+        private void Refresh()
+        {
+            LoadData(dataGridViewSelect, selectedTable);
         }
     }
 }

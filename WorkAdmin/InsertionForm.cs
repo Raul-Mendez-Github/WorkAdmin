@@ -41,6 +41,12 @@ namespace WorkAdmin
                 case Tables.Empleado_utiliza_Producto:
                     ConfigureProductUsageForm();
                     break;
+                case Tables.Factura:
+                    ConfigureInvoiceForm();
+                    break;
+                case Tables.Compra_tiene_Producto:
+                    ConfigurePurchaseProductForm();
+                    break;
                 default:
                     MessageBox.Show("Inserciones directas no permitidas en esta tabla.");
                     this.Close();
@@ -267,6 +273,108 @@ namespace WorkAdmin
             };
 
             this.Controls.AddRange(new Control[] { lblDate, dtpDate, lblEmployeeId, txtEmployeeId, lblProductId, txtProductId, lblQuantity, txtQuantity, lblReason, txtReason, btnSave });
+        }
+        private void ConfigureInvoiceForm()
+        {
+            this.Text = "Insertar Factura";
+
+            var lblFolio = new Label { Text = "Folio:", Location = new System.Drawing.Point(20, 20) };
+            var txtFolio = new TextBox { Location = new System.Drawing.Point(120, 20), Width = 200 };
+
+            var lblSubtotal = new Label { Text = "Subtotal:", Location = new System.Drawing.Point(20, 60) };
+            var txtSubtotal = new TextBox { Location = new System.Drawing.Point(120, 60), Width = 200 };
+
+            var lblTotal = new Label { Text = "Total:", Location = new System.Drawing.Point(20, 100) };
+            var txtTotal = new TextBox { Location = new System.Drawing.Point(120, 100), Width = 200 };
+
+            var lblEmissionDate = new Label { Text = "Fecha de Emisión:", Location = new System.Drawing.Point(20, 140) };
+            var dtpEmissionDate = new DateTimePicker { Location = new System.Drawing.Point(120, 140), Width = 200 };
+
+            var lblPaymentMethod = new Label { Text = "Método de Pago:", Location = new System.Drawing.Point(20, 180) };
+            var txtPaymentMethod = new TextBox { Location = new System.Drawing.Point(120, 180), Width = 200 };
+
+            var btnSave = new Button { Text = "Guardar", Location = new System.Drawing.Point(120, 220) };
+            btnSave.Click += (sender, e) =>
+            {
+                try
+                {
+                    string folio = txtFolio.Text;
+                    decimal subtotal = decimal.Parse(txtSubtotal.Text);
+                    decimal total = decimal.Parse(txtTotal.Text);
+                    DateTime emissionDate = dtpEmissionDate.Value;
+                    string paymentMethod = txtPaymentMethod.Text;
+
+                    string message = DataHandler.InsertInvoice(
+                        folio,
+                        subtotal,
+                        total,
+                        emissionDate,
+                        paymentMethod
+                    );
+                    MessageBox.Show(message);
+                    this.Close();
+                }
+                catch
+                {
+                    MessageBox.Show("Favor de ingresar todos los datos con formato válido.", "Error");
+                }
+            };
+
+            this.Controls.AddRange(new Control[] { lblFolio, txtFolio, lblSubtotal, txtSubtotal, lblTotal, txtTotal, lblEmissionDate, dtpEmissionDate, lblPaymentMethod, txtPaymentMethod, btnSave });
+        }
+        private void ConfigurePurchaseProductForm()
+        {
+            this.Text = "Asociar Producto a Compra";
+
+            // Crear y agregar controles para Compra_tiene_Producto
+            var lblQuantity = new Label { Text = "Cantidad:", Location = new System.Drawing.Point(20, 20) };
+            var txtQuantity = new TextBox { Location = new System.Drawing.Point(120, 20), Width = 200 };
+
+            var lblUnitPrice = new Label { Text = "Precio Unitario:", Location = new System.Drawing.Point(20, 60) };
+            var txtUnitPrice = new TextBox { Location = new System.Drawing.Point(120, 60), Width = 200 };
+
+            var lblPurchaseId = new Label { Text = "ID Compra:", Location = new System.Drawing.Point(20, 100) };
+            var txtPurchaseId = new TextBox { Location = new System.Drawing.Point(120, 100), Width = 200 };
+
+            var lblProductId = new Label { Text = "ID Producto:", Location = new System.Drawing.Point(20, 140) };
+            var txtProductId = new TextBox { Location = new System.Drawing.Point(120, 140), Width = 200 };
+
+            var lblStatus = new Label { Text = "Estado:", Location = new System.Drawing.Point(20, 180) };
+            var txtStatus = new TextBox { Location = new System.Drawing.Point(120, 180), Width = 200, Text = "Nuevo" };
+
+            var lblObservations = new Label { Text = "Observaciones:", Location = new System.Drawing.Point(20, 220) };
+            var txtObservations = new TextBox { Location = new System.Drawing.Point(120, 220), Width = 200 };
+
+            var btnSave = new Button { Text = "Guardar", Location = new System.Drawing.Point(120, 260) };
+            btnSave.Click += (sender, e) =>
+            {
+                try
+                {
+                    int quantity = int.Parse(txtQuantity.Text);
+                    decimal unitPrice = decimal.Parse(txtUnitPrice.Text);
+                    int purchaseId = int.Parse(txtPurchaseId.Text);
+                    int productId = int.Parse(txtProductId.Text);
+                    string status = txtStatus.Text;
+                    string observations = txtObservations.Text;
+
+                    string message = DataHandler.InsertPurchaseProduct(
+                        quantity,
+                        unitPrice,
+                        purchaseId,
+                        productId,
+                        status,
+                        observations
+                    );
+                    MessageBox.Show(message);
+                    this.Close();
+                }
+                catch
+                {
+                    MessageBox.Show("Favor de ingresar todos los datos con formato válido.", "Error");
+                }
+            };
+
+            this.Controls.AddRange(new Control[] { lblQuantity, txtQuantity, lblUnitPrice, txtUnitPrice, lblPurchaseId, txtPurchaseId, lblProductId, txtProductId, lblStatus, txtStatus, lblObservations, txtObservations, btnSave });
         }
         private string NullStringEmptys(string text)
         {

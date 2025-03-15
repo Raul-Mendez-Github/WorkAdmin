@@ -8,6 +8,7 @@ using System.Collections;
 using System.Data;
 using System.Windows.Forms;
 using System.IO;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WorkAdmin
 {
@@ -51,7 +52,8 @@ namespace WorkAdmin
         public static string CreateDatabase()
         {
             string query = File.ReadAllText(".\\ScriptCreacionBD.sql");
-
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(masterConnection);
@@ -85,6 +87,8 @@ namespace WorkAdmin
         public static string DropDatabase()
         {
             string query;
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(masterConnection);
@@ -114,6 +118,8 @@ namespace WorkAdmin
             DataTable dataTable = new DataTable();
             SqlDataReader reader;
             string query;
+            message = "";
+            connection = null;
 
             try
             {
@@ -140,6 +146,8 @@ namespace WorkAdmin
         }
         public static string InsertProduct(string name, string description = null, string metricUnit = null, string specification = null, string category = "REFACCION")
         {
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(dataBaseConnection);
@@ -175,6 +183,8 @@ namespace WorkAdmin
         }
         public static string InsertSupplier(string name, string businessName = null, string address = null, string phoneNumber = "6120000000", string email = null)
         {
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(dataBaseConnection);
@@ -210,6 +220,8 @@ namespace WorkAdmin
         }
         public static string InsertEmployee(string name, decimal salary, DateTime birthDate, string position = "EMPLEADO GENERAL", string phoneNumber = "6120000000", string email = null, string rfc = null)
         {
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(dataBaseConnection);
@@ -247,6 +259,8 @@ namespace WorkAdmin
         }
         public static string InsertPurchase(DateTime purchaseDate, int idInvoice, int idEmployee, int idSupplier, DateTime? receptionDate = null)
         {
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(masterConnection);
@@ -282,6 +296,8 @@ namespace WorkAdmin
         }
         public static string InsertProductUsage(DateTime date, int idEmployee, int idProduct, int quantity = 1, string reason = "Sin motivo")
         {
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(masterConnection);
@@ -317,6 +333,8 @@ namespace WorkAdmin
         }
         public static string InsertInvoice(string folio, decimal subtotal, decimal total, DateTime emissionDate, string paymentMethod = null, string paymentStatus = "POR PAGAR")
         {
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(dataBaseConnection);
@@ -353,6 +371,8 @@ namespace WorkAdmin
         }
         public static string InsertPurchaseProduct(int quantity, decimal unitPrice, int purchaseId, int productId, string status = "Nuevo", string observations = null)
         {
+            message = "";
+            connection = null;
             try
             {
                 connection = new SqlConnection(dataBaseConnection);
@@ -377,6 +397,126 @@ namespace WorkAdmin
             catch (Exception ex)
             {
                 message = "Ocurrió un error al asociar el producto a la compra: " + ex.Message;
+            }
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+
+            return message;
+        }
+        public static string DeleteRegisterByID(Tables table, int id)
+        {
+            message = "";
+            connection = null;
+            try
+            {
+                connection = new SqlConnection(dataBaseConnection);
+                connection.Open();
+
+                command = new SqlCommand($"USE {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                string query = $"DELETE FROM {table} WHERE id = @id";
+
+                command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@id", id);
+
+                command.ExecuteNonQuery();
+                message = "Registro eliminado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                message = "Ocurrió un error al eliminar el registro: " + ex.Message;
+            }
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+
+            return message;
+        }
+        public static string UpdateRegister(string tableName, Dictionary<string, object> columnValues, Dictionary<string, object> conditions)
+        {
+            message = "";
+            connection = null;
+            try
+            {
+                connection = new SqlConnection(dataBaseConnection);
+                connection.Open();
+
+                command = new SqlCommand($"USE {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                string setClause = string.Join(", ", columnValues.Select(kv => $"{kv.Key} = @{kv.Key}"));
+                string whereClause = string.Join(" AND ", conditions.Select(kv => $"{kv.Key} = @cond_{kv.Key}"));
+
+                string query = $"UPDATE {tableName} SET {setClause} WHERE {whereClause}";
+
+                command = new SqlCommand(query, connection);
+
+                foreach (var kv in columnValues)
+                {
+                    command.Parameters.AddWithValue($"@{kv.Key}", kv.Value ?? DBNull.Value);
+                }
+
+                foreach (var kv in conditions)
+                {
+                    command.Parameters.AddWithValue($"@cond_{kv.Key}", kv.Value ?? DBNull.Value);
+                }
+
+                command.ExecuteNonQuery();
+                message = "Registro actualizado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                message = "Ocurrió un error al actualizar el registro: " + ex.Message;
+            }
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+
+            return message;
+        }
+        public static string DeleteRegister(string tableName, Dictionary<string, object> columnValues)
+        {
+            message = "";
+            connection = null;
+            try
+            {
+                connection = new SqlConnection(dataBaseConnection);
+                connection.Open();
+
+                command = new SqlCommand($"USE {databaseName}", connection);
+                command.ExecuteNonQuery();
+
+                string whereClause = string.Join(" AND ", columnValues.Select(kv => $"{kv.Key} = @{kv.Key}"));
+
+                string query = $"DELETE FROM {tableName} WHERE {whereClause}";
+
+                command = new SqlCommand(query, connection);
+
+                foreach (var kv in columnValues)
+                {
+                    command.Parameters.AddWithValue($"@{kv.Key}", kv.Value ?? DBNull.Value);
+                }
+
+                command.ExecuteNonQuery();
+                message = "Registro eliminado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                message = "Ocurrió un error al eliminar el registro: " + ex.Message;
             }
             finally
             {
