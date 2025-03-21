@@ -376,7 +376,6 @@ VALUES
 ('2023-09-01', 9, 'Uso general', 8, 9),
 ('2023-10-01', 5, 'Uso general', 6, 10);
 
--- Procedimiento para insertar en Proveedor
 IF OBJECT_ID('InsertarProveedor', 'P') IS NOT NULL
     DROP PROCEDURE InsertarProveedor;
 GO
@@ -391,19 +390,27 @@ BEGIN
     BEGIN TRY
         INSERT INTO Proveedor (nombre, razon_social, domicilio, telefono, correo)
         VALUES (@nombre, @razon_social, @domicilio, @telefono, @correo);
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('La inserción falló debido a una restricción.', 16, 1);
+        END
+        ELSE
+        BEGIN
+            PRINT 'Proveedor insertado correctamente.';
+        END
     END TRY
     BEGIN CATCH
-        SELECT ERROR_NUMBER(), ERROR_MESSAGE();
+        SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;
     END CATCH
 END;
 GO
--- Procedimiento para insertar en Producto
+
 IF OBJECT_ID('InsertarProducto', 'P') IS NOT NULL
     DROP PROCEDURE InsertarProducto;
 GO
 CREATE PROCEDURE InsertarProducto
     @nombre VARCHAR(100),
-    @descripcion TEXT = NULL,
+    @descripcion VARCHAR(200) = NULL,
     @unidad_medida VARCHAR(50) = NULL,
     @especificacion VARCHAR(100) = NULL,
     @categoria VARCHAR(50) = 'REFACCION'
@@ -412,13 +419,21 @@ BEGIN
     BEGIN TRY
         INSERT INTO Producto (nombre, descripcion, unidad_medida, especificacion, categoria)
         VALUES (@nombre, @descripcion, @unidad_medida, @especificacion, @categoria);
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('La inserción falló debido a una restricción.', 16, 1);
+        END
+        ELSE
+        BEGIN
+            PRINT 'Producto insertado correctamente.';
+        END
     END TRY
     BEGIN CATCH
-        SELECT ERROR_NUMBER(), ERROR_MESSAGE();
+        SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;
     END CATCH
 END;
 GO
--- Procedimiento para insertar en Empleado
+
 IF OBJECT_ID('InsertarEmpleado', 'P') IS NOT NULL
     DROP PROCEDURE InsertarEmpleado;
 GO
@@ -435,13 +450,21 @@ BEGIN
     BEGIN TRY
         INSERT INTO Empleado (nombre, puesto, sueldo, telefono, correo, rfc, fecha_nacimiento)
         VALUES (@nombre, @puesto, @sueldo, @telefono, @correo, @rfc, @fecha_nacimiento);
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('La inserción falló debido a una restricción.', 16, 1);
+        END
+        ELSE
+        BEGIN
+            PRINT 'Empleado insertado correctamente.';
+        END
     END TRY
     BEGIN CATCH
-        SELECT ERROR_NUMBER(), ERROR_MESSAGE();
+        SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;
     END CATCH
 END;
 GO
--- Procedimiento para insertar en Factura
+
 IF OBJECT_ID('InsertarFactura', 'P') IS NOT NULL
     DROP PROCEDURE InsertarFactura;
 GO
@@ -457,14 +480,21 @@ BEGIN
     BEGIN TRY
         INSERT INTO Factura (folio, metodo_pago, subtotal, total, estado_pago, fecha_emision)
         VALUES (@folio, @metodo_pago, @subtotal, @total, @estado_pago, @fecha_emision);
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('La inserción falló debido a una restricción.', 16, 1);
+        END
+        ELSE
+        BEGIN
+            PRINT 'Factura insertada correctamente.';
+        END
     END TRY
     BEGIN CATCH
-        SELECT ERROR_NUMBER(), ERROR_MESSAGE();
+        SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;
     END CATCH
 END;
 GO
 
--- Procedimiento para insertar en Compra
 IF OBJECT_ID('InsertarCompra', 'P') IS NOT NULL
     DROP PROCEDURE InsertarCompra;
 GO
@@ -479,14 +509,21 @@ BEGIN
     BEGIN TRY
         INSERT INTO Compra (fecha_compra, fecha_recepcion, id_factura, id_empleado, id_proveedor)
         VALUES (@fecha_compra, @fecha_recepcion, @id_factura, @id_empleado, @id_proveedor);
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('La inserción falló debido a una restricción.', 16, 1);
+        END
+        ELSE
+        BEGIN
+            PRINT 'Compra registrada correctamente.';
+        END
     END TRY
     BEGIN CATCH
-        SELECT ERROR_NUMBER(), ERROR_MESSAGE();
+        SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;
     END CATCH
 END;
 GO
 
--- Procedimiento para insertar en Compra_tiene_Producto
 IF OBJECT_ID('InsertarCompraProducto', 'P') IS NOT NULL
     DROP PROCEDURE InsertarCompraProducto;
 GO
@@ -494,7 +531,7 @@ CREATE PROCEDURE InsertarCompraProducto
     @cantidad INT,
     @precio_unitario DECIMAL(10,2),
     @estado VARCHAR(50) = 'Nuevo',
-    @observaciones TEXT = NULL,
+    @observaciones VARCHAR(200) = NULL,
     @id_compra INT,
     @id_producto INT
 AS
@@ -502,14 +539,21 @@ BEGIN
     BEGIN TRY
         INSERT INTO Compra_tiene_Producto (cantidad, precio_unitario, estado, observaciones, id_compra, id_producto)
         VALUES (@cantidad, @precio_unitario, @estado, @observaciones, @id_compra, @id_producto);
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('La inserción falló debido a una restricción.', 16, 1);
+        END
+        ELSE
+        BEGIN
+            PRINT 'Producto asociado a la compra correctamente.';
+        END
     END TRY
     BEGIN CATCH
-        SELECT ERROR_NUMBER(), ERROR_MESSAGE();
+        SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;
     END CATCH
 END;
 GO
 
--- Procedimiento para insertar en Empleado_utiliza_Producto
 IF OBJECT_ID('InsertarEmpleadoUtilizaProducto', 'P') IS NOT NULL
     DROP PROCEDURE InsertarEmpleadoUtilizaProducto;
 GO
@@ -524,12 +568,21 @@ BEGIN
     BEGIN TRY
         INSERT INTO Empleado_utiliza_Producto (fecha, cantidad, motivo, id_empleado, id_producto)
         VALUES (@fecha, @cantidad, @motivo, @id_empleado, @id_producto);
+        IF @@ROWCOUNT = 0
+        BEGIN
+            RAISERROR('La inserción falló debido a una restricción.', 16, 1);
+        END
+        ELSE
+        BEGIN
+            PRINT 'Salida de almacén registrada correctamente.';
+        END
     END TRY
-	BEGIN CATCH
-        SELECT ERROR_NUMBER(), ERROR_MESSAGE();
+    BEGIN CATCH
+        SELECT ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;
     END CATCH
 END;
 GO
+
 -- 1. Vista de inventario actual
 CREATE OR ALTER VIEW Inventario AS
 SELECT p.id, p.nombre, p.unidad_medida, p.descripcion,

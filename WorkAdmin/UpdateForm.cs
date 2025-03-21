@@ -21,7 +21,7 @@ namespace WorkAdmin
             _tableType = tableType;
             _columnValues = columnValues;
             this.Text = $"Modificar {tableType}";
-            this.Size = new System.Drawing.Size(400, 300);
+            //this.Size = new System.Drawing.Size(400, 350);
             ConfigureForm();
         }
 
@@ -57,8 +57,6 @@ namespace WorkAdmin
                     this.Close();
                     break;
             }
-
-            // Cargar los datos del registro seleccionado
             LoadDataIntoForm(_columnValues);
         }
 

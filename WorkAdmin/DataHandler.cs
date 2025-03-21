@@ -153,24 +153,26 @@ namespace WorkAdmin
                 connection = new SqlConnection(dataBaseConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use {databaseName}", connection);
-                command.ExecuteNonQuery();
+                using (SqlCommand command = new SqlCommand("InsertarProducto", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@nombre", name);
+                    command.Parameters.AddWithValue("@descripcion", description ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@unidad_medida", metricUnit ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@especificacion", specification ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@categoria", category);
 
-                command = new SqlCommand("InsertarProducto", connection);
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.AddWithValue("@nombre", name);
-                command.Parameters.AddWithValue("@descripcion", description ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@unidad_medida", metricUnit ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@especificacion", specification ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@categoria", category);
-
-                command.ExecuteNonQuery();
-                message = "Producto insertado correctamente.";
+                    int rowsAffected = command.ExecuteNonQuery();
+                    message = rowsAffected > 0 ? "Producto insertado correctamente." : "La inserción falló debido a una restricción.";
+                }
+            }
+            catch (SqlException ex)
+            {
+                message = HandleSqlException(ex);
             }
             catch (Exception ex)
             {
-                message = "Ocurrió un error al insertar el producto: " + ex.Message;
+                message = $"Error inesperado: {ex.Message}";
             }
             finally
             {
@@ -181,6 +183,7 @@ namespace WorkAdmin
             }
             return message;
         }
+
         public static string InsertSupplier(string name, string businessName = null, string address = null, string phoneNumber = "6120000000", string email = null)
         {
             message = "";
@@ -190,24 +193,26 @@ namespace WorkAdmin
                 connection = new SqlConnection(dataBaseConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use {databaseName}", connection);
-                command.ExecuteNonQuery();
+                using (SqlCommand command = new SqlCommand("InsertarProveedor", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@nombre", name);
+                    command.Parameters.AddWithValue("@razon_social", businessName ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@domicilio", address ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@telefono", phoneNumber);
+                    command.Parameters.AddWithValue("@correo", email ?? (object)DBNull.Value);
 
-                command = new SqlCommand("InsertarProveedor", connection);
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.AddWithValue("@nombre", name);
-                command.Parameters.AddWithValue("@razon_social", businessName ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@domicilio", address ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@telefono", phoneNumber);
-                command.Parameters.AddWithValue("@correo", email ?? (object)DBNull.Value);
-
-                command.ExecuteNonQuery();
-                message = "Proveedor insertado correctamente.";
+                    int rowsAffected = command.ExecuteNonQuery();
+                    message = rowsAffected > 0 ? "Proveedor insertado correctamente." : "La inserción falló debido a una restricción.";
+                }
+            }
+            catch (SqlException ex)
+            {
+                message = HandleSqlException(ex);
             }
             catch (Exception ex)
             {
-                message = "Ocurrió un error al insertar el proveedor: " + ex.Message;
+                message = $"Error inesperado: {ex.Message}";
             }
             finally
             {
@@ -218,6 +223,7 @@ namespace WorkAdmin
             }
             return message;
         }
+
         public static string InsertEmployee(string name, decimal salary, DateTime birthDate, string position = "EMPLEADO GENERAL", string phoneNumber = "6120000000", string email = null, string rfc = null)
         {
             message = "";
@@ -227,26 +233,28 @@ namespace WorkAdmin
                 connection = new SqlConnection(dataBaseConnection);
                 connection.Open();
 
-                command = new SqlCommand($"use {databaseName}", connection);
-                command.ExecuteNonQuery();
+                using (SqlCommand command = new SqlCommand("InsertarEmpleado", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@nombre", name);
+                    command.Parameters.AddWithValue("@puesto", position);
+                    command.Parameters.AddWithValue("@sueldo", salary);
+                    command.Parameters.AddWithValue("@telefono", phoneNumber);
+                    command.Parameters.AddWithValue("@correo", email ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@rfc", rfc ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@fecha_nacimiento", birthDate);
 
-                command = new SqlCommand("InsertarEmpleado", connection);
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.AddWithValue("@nombre", name);
-                command.Parameters.AddWithValue("@puesto", position);
-                command.Parameters.AddWithValue("@sueldo", salary);
-                command.Parameters.AddWithValue("@telefono", phoneNumber);
-                command.Parameters.AddWithValue("@correo", email ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@rfc", rfc ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@fecha_nacimiento", birthDate);
-
-                command.ExecuteNonQuery();
-                message = "Empleado insertado correctamente.";
+                    int rowsAffected = command.ExecuteNonQuery();
+                    message = rowsAffected > 0 ? "Empleado insertado correctamente." : "La inserción falló debido a una restricción.";
+                }
+            }
+            catch (SqlException ex)
+            {
+                message = HandleSqlException(ex);
             }
             catch (Exception ex)
             {
-                message = "Ocurrió un error al insertar el empleado: " + ex.Message;
+                message = $"Error inesperado: {ex.Message}";
             }
             finally
             {
@@ -257,80 +265,7 @@ namespace WorkAdmin
             }
             return message;
         }
-        public static string InsertPurchase(DateTime purchaseDate, int idInvoice, int idEmployee, int idSupplier, DateTime? receptionDate = null)
-        {
-            message = "";
-            connection = null;
-            try
-            {
-                connection = new SqlConnection(masterConnection);
-                connection.Open();
 
-                command = new SqlCommand($"use {databaseName}", connection);
-                command.ExecuteNonQuery();
-
-                command = new SqlCommand("InsertarCompra", connection);
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.AddWithValue("@fecha_compra", purchaseDate);
-                command.Parameters.AddWithValue("@fecha_recepcion", receptionDate ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@id_factura", idInvoice);
-                command.Parameters.AddWithValue("@id_empleado", idEmployee);
-                command.Parameters.AddWithValue("@id_proveedor", idSupplier);
-
-                command.ExecuteNonQuery();
-                message = "Compra registrada correctamente.";
-            }
-            catch (Exception ex)
-            {
-                message = "Ocurrió un error al registrar la compra: " + ex.Message;
-            }
-            finally
-            {
-                if (connection != null && connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                }
-            }
-            return message;
-        }
-        public static string InsertProductUsage(DateTime date, int idEmployee, int idProduct, int quantity = 1, string reason = "Sin motivo")
-        {
-            message = "";
-            connection = null;
-            try
-            {
-                connection = new SqlConnection(masterConnection);
-                connection.Open();
-
-                command = new SqlCommand($"use {databaseName}", connection);
-                command.ExecuteNonQuery();
-
-                command = new SqlCommand("InsertarEmpleadoUtilizaProducto", connection);
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.AddWithValue("@fecha", date);
-                command.Parameters.AddWithValue("@cantidad", quantity);
-                command.Parameters.AddWithValue("@motivo", reason);
-                command.Parameters.AddWithValue("@id_empleado", idEmployee);
-                command.Parameters.AddWithValue("@id_producto", idProduct);
-
-                command.ExecuteNonQuery();
-                message = "Salida de almacén registrada correctamente.";
-            }
-            catch (Exception ex)
-            {
-                message = "Ocurrió un error al registrar la salida de almacén: " + ex.Message;
-            }
-            finally
-            {
-                if (connection != null && connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                }
-            }
-            return message;
-        }
         public static string InsertInvoice(string folio, decimal subtotal, decimal total, DateTime emissionDate, string paymentMethod = null, string paymentStatus = "POR PAGAR")
         {
             message = "";
@@ -340,25 +275,107 @@ namespace WorkAdmin
                 connection = new SqlConnection(dataBaseConnection);
                 connection.Open();
 
-                command = new SqlCommand($"USE {databaseName}", connection);
-                command.ExecuteNonQuery();
+                using (SqlCommand command = new SqlCommand("InsertarFactura", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@folio", folio);
+                    command.Parameters.AddWithValue("@metodo_pago", paymentMethod ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@subtotal", subtotal);
+                    command.Parameters.AddWithValue("@total", total);
+                    command.Parameters.AddWithValue("@estado_pago", paymentStatus);
+                    command.Parameters.AddWithValue("@fecha_emision", emissionDate);
 
-                command = new SqlCommand("InsertarFactura", connection);
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.AddWithValue("@folio", folio);
-                command.Parameters.AddWithValue("@metodo_pago", paymentMethod ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@subtotal", subtotal);
-                command.Parameters.AddWithValue("@total", total);
-                command.Parameters.AddWithValue("@estado_pago", paymentStatus);
-                command.Parameters.AddWithValue("@fecha_emision", emissionDate);
-
-                command.ExecuteNonQuery();
-                message = "Factura insertada correctamente.";
+                    int rowsAffected = command.ExecuteNonQuery();
+                    message = rowsAffected > 0 ? "Factura insertada correctamente." : "La inserción falló debido a una restricción.";
+                }
+            }
+            catch (SqlException ex)
+            {
+                message = HandleSqlException(ex);
             }
             catch (Exception ex)
             {
-                message = "Ocurrió un error al insertar la factura: " + ex.Message;
+                message = $"Error inesperado: {ex.Message}";
+            }
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            return message;
+        }
+
+        public static string InsertPurchase(DateTime purchaseDate, int idInvoice, int idEmployee, int idSupplier, DateTime? receptionDate = null)
+        {
+            message = "";
+            connection = null;
+            try
+            {
+                connection = new SqlConnection(dataBaseConnection);
+                connection.Open();
+
+                using (SqlCommand command = new SqlCommand("InsertarCompra", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@fecha_compra", purchaseDate);
+                    command.Parameters.AddWithValue("@fecha_recepcion", receptionDate ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@id_factura", idInvoice);
+                    command.Parameters.AddWithValue("@id_empleado", idEmployee);
+                    command.Parameters.AddWithValue("@id_proveedor", idSupplier);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    message = rowsAffected > 0 ? "Compra registrada correctamente." : "La inserción falló debido a una restricción.";
+                }
+            }
+            catch (SqlException ex)
+            {
+                message = HandleSqlException(ex);
+            }
+            catch (Exception ex)
+            {
+                message = $"Error inesperado: {ex.Message}";
+            }
+            finally
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            return message;
+        }
+
+        public static string InsertProductUsage(DateTime date, int idEmployee, int idProduct, int quantity = 1, string reason = "Sin motivo")
+        {
+            message = "";
+            connection = null;
+            try
+            {
+                connection = new SqlConnection(dataBaseConnection);
+                connection.Open();
+
+                using (SqlCommand command = new SqlCommand("InsertarEmpleadoUtilizaProducto", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@fecha", date);
+                    command.Parameters.AddWithValue("@cantidad", quantity);
+                    command.Parameters.AddWithValue("@motivo", reason);
+                    command.Parameters.AddWithValue("@id_empleado", idEmployee);
+                    command.Parameters.AddWithValue("@id_producto", idProduct);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    message = rowsAffected > 0 ? "Salida de almacén registrada correctamente." : "La inserción falló debido a una restricción.";
+                }
+            }
+            catch (SqlException ex)
+            {
+                message = HandleSqlException(ex);
+            }
+            catch (Exception ex)
+            {
+                message = $"Error inesperado: {ex.Message}";
             }
             finally
             {
@@ -391,12 +408,16 @@ namespace WorkAdmin
                 command.Parameters.AddWithValue("@id_compra", purchaseId);
                 command.Parameters.AddWithValue("@id_producto", productId);
 
-                command.ExecuteNonQuery();
-                message = "Producto asociado a la compra correctamente.";
+                int rowsAffected = command.ExecuteNonQuery();
+                message = rowsAffected > 0 ? "Compra registrada correctamente." : "La inserción falló debido a una restricción.";
+            }
+            catch (SqlException ex)
+            {
+                message = HandleSqlException(ex);
             }
             catch (Exception ex)
             {
-                message = "Ocurrió un error al asociar el producto a la compra: " + ex.Message;
+                message = $"Error inesperado: {ex.Message}";
             }
             finally
             {
@@ -405,7 +426,6 @@ namespace WorkAdmin
                     connection.Close();
                 }
             }
-
             return message;
         }
         public static string DeleteRegisterByID(Tables table, int id)
@@ -527,6 +547,19 @@ namespace WorkAdmin
             }
 
             return message;
+        }
+        private static string HandleSqlException(SqlException ex)
+        {
+            switch (ex.Number)
+            {
+                case 547: // Violación de restricción (CHECK, FOREIGN KEY, etc.)
+                    return "Error: Violación de restricción. Verifica los datos ingresados.";
+                case 2601: // Violación de índice único (duplicado)
+                case 2627: // Violación de clave primaria (duplicado)
+                    return "Error: El registro ya existe o viola una restricción única.";
+                default:
+                    return $"Error de SQL: {ex.Message}";
+            }
         }
     }
 }
